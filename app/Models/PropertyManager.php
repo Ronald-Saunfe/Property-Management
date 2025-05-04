@@ -9,6 +9,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 /**
  * Class PropertyManager
  * 
@@ -26,6 +28,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PropertyManager extends Model
 {
+	
+	use HasFactory;
+
 	protected $table = 'property_managers';
 
 	protected $casts = [

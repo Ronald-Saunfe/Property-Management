@@ -9,6 +9,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Class Tenant
@@ -35,6 +36,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Tenant extends Model
 {
+	
+	use HasFactory;
+
+
 	protected $table = 'tenants';
 
 	protected $casts = [
@@ -62,8 +67,4 @@ class Tenant extends Model
 		return $this->hasMany(Lease::class);
 	}
 
-	public function maintenance_requests()
-	{
-		return $this->hasMany(MaintenanceRequest::class);
-	}
 }

@@ -9,6 +9,11 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens; // Add this import
+use Illuminate\Foundation\Auth\User as Authenticatable; // Add this import
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
+use Illuminate\Notifications\Notifiable; 
+ 
 
 /**
  * Class User
@@ -32,8 +37,15 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  */
-class User extends Model
-{
+ 
+
+
+class User extends Authenticatable
+{ 
+
+	use HasApiTokens, HasFactory, Notifiable;
+
+
 	protected $table = 'users';
 
 	protected $casts = [
@@ -55,20 +67,6 @@ class User extends Model
 		'remember_token'
 	];
 
-	public function documents()
-	{
-		return $this->hasMany(Document::class, 'uploaded_by');
-	}
-
-	public function maintenance_requests()
-	{
-		return $this->hasMany(MaintenanceRequest::class, 'assigned_to');
-	}
-
-	public function notifications()
-	{
-		return $this->hasMany(Notification::class);
-	}
 
 	public function properties()
 	{

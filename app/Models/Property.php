@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 /**
  * Class Property
  * 
@@ -35,6 +37,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Property extends Model
 {
+	
+	use HasFactory;
+
 	protected $table = 'properties';
 
 	protected $casts = [

@@ -9,6 +9,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 /**
  * Class LeaseTenant
  * 
@@ -26,6 +28,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class LeaseTenant extends Model
 {
+	
+	use HasFactory;
+
 	protected $table = 'lease_tenants';
 
 	protected $casts = [
