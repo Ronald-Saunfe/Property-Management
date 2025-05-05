@@ -4,6 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 
 
 /*
@@ -21,14 +25,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('documents', \App\Http\Controllers\DocumentController::class);
-});
-
 
 // Add login route
 Route::post('/login', function (Request $request) {
-
     $credentials = $request->validate([
         'email' => 'required|email',
         'password' => 'required'
@@ -84,3 +83,41 @@ Route::post('/register', function (Request $request) {
         'token_type' => 'Bearer'
     ], 201);
 });
+
+// Add logout route
+Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
+    $request->user()->currentAccessToken()->delete();
+    
+    return response()->json([
+        'message' => 'Successfully logged out'
+    ]);
+});
+
+// Register password reset routes
+use App\Http\Controllers\Auth\ResetPasswordController;
+
+ResetPasswordController::routes();
+
+// Include lease routes
+require __DIR__.'/api_leases.php';
+
+// Include lease tenant routes
+require __DIR__.'/api_lease_tenants.php';
+
+// Include payment routes
+require __DIR__.'/api_payments.php';
+
+// Include property routes
+require __DIR__.'/api_properties.php';
+
+// Include property manager routes
+require __DIR__.'/api_property_managers.php';
+
+// Include tenant routes
+require __DIR__.'/api_tenants.php';
+
+// Include unit routes
+require __DIR__.'/api_units.php';
+
+// Include user routes
+require __DIR__.'/api_users.php';
