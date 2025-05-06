@@ -45,12 +45,12 @@ COPY --chown=www:www . /var/www/html
 COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
 
 # Create startup script
-RUN echo '#!/bin/bash\n\
-# Set the port based on environment variable or default to 80\nPORT=${PORT:-80}\n\
-# Update Nginx config to use the PORT environment variable\nsed -i "s/listen 80/listen $PORT/g" /etc/nginx/sites-available/default\n\
-# Start Nginx\nservice nginx start\n\
-# Start PHP-FPM\nphp-fpm' > /var/www/html/start.sh \
-    && chmod +x /var/www/html/start.sh
+RUN echo '#!/bin/bash' > /var/www/html/start.sh && \
+    echo 'PORT=${PORT:-80}' >> /var/www/html/start.sh && \
+    echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
+    echo 'service nginx start' >> /var/www/html/start.sh && \
+    echo 'php-fpm' >> /var/www/html/start.sh && \
+    chmod +x /var/www/html/start.sh
 
 # Change current user to www for application files
 RUN chown -R www:www /var/www/html
