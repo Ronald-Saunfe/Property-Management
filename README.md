@@ -30,10 +30,15 @@ A comprehensive property management application built with Laravel, designed to 
 
 For a simpler setup using Docker, please refer to our [Docker Setup Guide](DOCKER-SETUP.md).
 
+### Cloud Deployment
+
+For deploying to Render cloud platform, see our [Render Deployment Guide](RENDER-DEPLOYMENT.md).
+
 ## Documentation
 
 ### Architecture & Design
 
+* [Architectural Decisions](ARCHITECTURAL-DECISIONS.md) - Key architectural decisions and rationale
 * [RBAC Documentation](RBAC-DOCUMENTATION.md) - Role-Based Access Control implementation
 * [API Documentation](SWAGGER-DOCUMENTATION.md) - API endpoints and usage
 * [Scaling Strategies](SCALING-STRATEGIES.md) - Horizontal scaling approaches
@@ -48,6 +53,10 @@ For a simpler setup using Docker, please refer to our [Docker Setup Guide](DOCKE
 ### Security
 
 * [Rate Limiting Documentation](RATE-LIMITING-DOCUMENTATION.md) - API rate limiting implementation
+
+### Testing
+
+* [Test Coverage Report](TEST-COVERAGE-REPORT.md) - Comprehensive test coverage metrics and analysis
 
 ## Project Submission
 

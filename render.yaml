@@ -1,0 +1,71 @@
+services:
+  # Web Service
+  - type: web
+    name: property-management
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    branch: main
+    numInstances: 1
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://property-management.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase:
+          name: property-management-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: property-management-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: property-management-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: property-management-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: property-management-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: property-management-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: property-management-redis
+          type: redis
+          property: port
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: APP_KEY
+        sync: false
+
+  # Redis Service
+  - type: redis
+    name: property-management-redis
+    ipAllowList: []
+    plan: starter
+
+# Database
+databases:
+  - name: property-management-db
+    plan: starter
+    databaseName: property_management
+    user: pm_user
