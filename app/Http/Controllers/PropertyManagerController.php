@@ -13,6 +13,100 @@ class PropertyManagerController extends Controller
 {
     /**
      * Display a paginated, filtered, and sorted listing of property managers.
+     * 
+     * @OA\Get(
+     *     path="/property-managers",
+     *     operationId="getPropertyManagersList",
+     *     tags={"Property Managers"},
+     *     summary="Get list of property managers",
+     *     description="Returns paginated list of property managers with filtering and sorting options",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="property_id",
+     *         in="query",
+     *         description="Filter by property ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         description="Filter by user ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="is_primary",
+     *         in="query",
+     *         description="Filter by primary manager status",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by property name, address, user name, or email",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Direction to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", format="int32")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="property_id", type="integer"),
+     *                 @OA\Property(property="user_id", type="integer"),
+     *                 @OA\Property(property="is_primary", type="boolean"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="property", type="object"),
+     *                 @OA\Property(property="user", type="object")
+     *             )),
+     *             @OA\Property(property="pagination", type="object",
+     *                 @OA\Property(property="total", type="integer"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="to", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -91,107 +185,241 @@ class PropertyManagerController extends Controller
     /**
      * Store a newly created property manager in storage.
      *
+     * @OA\Post(
+     *     path="/property-managers",
+     *     operationId="storePropertyManager",
+     *     tags={"Property Managers"},
+     *     summary="Store new property manager",
+     *     description="Creates a new property manager relationship and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"property_id", "user_id", "is_primary"},
+     *             @OA\Property(property="property_id", type="integer", description="ID of the property"),
+     *             @OA\Property(property="user_id", type="integer", description="ID of the user"),
+     *             @OA\Property(property="is_primary", type="boolean", description="Whether this user is the primary manager for the property")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Property manager created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="property_id", type="integer"),
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="is_primary", type="boolean"),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="property", type="object"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  \App\Http\Requests\PropertyManagerRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(PropertyManagerRequest $request)
-    {
-        $validated = $request->validated();
-
-        // Check if property exists
-        $property = Property::findOrFail($validated['property_id']);
-        
-        // Check if user exists
-        $user = User::findOrFail($validated['user_id']);
-
-        // If this is a primary manager, update any existing primary managers for this property
-        if ($validated['is_primary']) {
-            PropertyManager::where('property_id', $validated['property_id'])
-                ->where('is_primary', true)
-                ->update(['is_primary' => false]);
-        }
-
-        $propertyManager = PropertyManager::create($validated);
-
-        // Load relationships for the response
-        $propertyManager->load(['property', 'user']);
-
-        return response()->json($propertyManager, 201);
-    }
 
     /**
      * Display the specified property manager.
      *
+     * @OA\Get(
+     *     path="/property-managers/{id}",
+     *     operationId="getPropertyManagerById",
+     *     tags={"Property Managers"},
+     *     summary="Get property manager information",
+     *     description="Returns property manager details by ID",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Property Manager ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="property_id", type="integer"),
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="is_primary", type="boolean"),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="property", type="object"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Property manager not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        $propertyManager = PropertyManager::with(['property', 'user'])->findOrFail($id);
-        return response()->json($propertyManager);
-    }
 
     /**
      * Update the specified property manager in storage.
+     *
+     * @OA\Put(
+     *     path="/property-managers/{id}",
+     *     operationId="updatePropertyManager",
+     *     tags={"Property Managers"},
+     *     summary="Update property manager",
+     *     description="Updates an existing property manager relationship and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Property Manager ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="property_id", type="integer", description="ID of the property"),
+     *             @OA\Property(property="user_id", type="integer", description="ID of the user"),
+     *             @OA\Property(property="is_primary", type="boolean", description="Whether this user is the primary manager for the property")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property manager updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="property_id", type="integer"),
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="is_primary", type="boolean"),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="property", type="object"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Property manager not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @param  \App\Http\Requests\PropertyManagerRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(PropertyManagerRequest $request, $id)
-    {
-        $propertyManager = PropertyManager::findOrFail($id);
-        $validated = $request->validated();
-
-        // If this is being set as primary, update any existing primary managers for this property
-        if (isset($validated['is_primary']) && $validated['is_primary']) {
-            $propertyId = $validated['property_id'] ?? $propertyManager->property_id;
-            PropertyManager::where('property_id', $propertyId)
-                ->where('id', '!=', $id)
-                ->where('is_primary', true)
-                ->update(['is_primary' => false]);
-        }
-
-        $propertyManager->update($validated);
-
-        // Load relationships for the response
-        $propertyManager->load(['property', 'user']);
-
-        return response()->json($propertyManager);
-    }
 
     /**
      * Remove the specified property manager from storage.
      *
+     * @OA\Delete(
+     *     path="/property-managers/{id}",
+     *     operationId="deletePropertyManager",
+     *     tags={"Property Managers"},
+     *     summary="Delete property manager",
+     *     description="Deletes a property manager relationship",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Property Manager ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Property manager deleted successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Property manager not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Cannot delete property manager",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Cannot delete the only property manager. A property must have at least one manager.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $propertyManager = PropertyManager::findOrFail($id);
-        
-        // Check if this is the only manager for the property
-        $managersCount = PropertyManager::where('property_id', $propertyManager->property_id)->count();
-        if ($managersCount <= 1) {
-            return response()->json([
-                'message' => 'Cannot delete the only property manager. A property must have at least one manager.'
-            ], 422);
-        }
-        
-        // Check if this is the primary manager
-        if ($propertyManager->is_primary) {
-            return response()->json([
-                'message' => 'Cannot delete the primary property manager. Assign another manager as primary first.'
-            ], 422);
-        }
-        
-        $propertyManager->delete();
-
-        return response()->json(null, 204);
-    }
 
     /**
      * Get property manager statistics.
+     *
+     * @OA\Get(
+     *     path="/property-managers/statistics",
+     *     operationId="getPropertyManagerStatistics",
+     *     tags={"Property Managers"},
+     *     summary="Get property manager statistics",
+     *     description="Returns statistics about property managers including counts by primary status",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="total_property_managers", type="integer"),
+     *             @OA\Property(property="primary_managers", type="integer"),
+     *             @OA\Property(property="secondary_managers", type="integer"),
+     *             @OA\Property(property="properties_with_multiple_managers", type="integer"),
+     *             @OA\Property(property="top_managers", type="array", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="properties_managed", type="integer")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @return \Illuminate\Http\Response
      */

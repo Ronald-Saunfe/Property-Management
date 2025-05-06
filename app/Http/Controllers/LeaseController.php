@@ -13,6 +13,154 @@ class LeaseController extends Controller
 {
     /**
      * Display a paginated, filtered, and sorted listing of leases.
+     * 
+     * @OA\Get(
+     *     path="/leases",
+     *     operationId="getLeasesList",
+     *     tags={"Leases"},
+     *     summary="Get list of leases",
+     *     description="Returns paginated list of leases with filtering and sorting options",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by lease status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"active", "pending", "expired", "terminated"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="lease_type",
+     *         in="query",
+     *         description="Filter by lease type",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="unit_id",
+     *         in="query",
+     *         description="Filter by unit ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="tenant_id",
+     *         in="query",
+     *         description="Filter by tenant ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="start_date_from",
+     *         in="query",
+     *         description="Filter by start date (from)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="start_date_to",
+     *         in="query",
+     *         description="Filter by start date (to)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="end_date_from",
+     *         in="query",
+     *         description="Filter by end date (from)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="end_date_to",
+     *         in="query",
+     *         description="Filter by end date (to)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="rent_min",
+     *         in="query",
+     *         description="Filter by minimum monthly rent",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="rent_max",
+     *         in="query",
+     *         description="Filter by maximum monthly rent",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search across notes, tenant information, and unit number",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Direction to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", format="int32")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="unit_id", type="integer"),
+     *                 @OA\Property(property="tenant_id", type="integer"),
+     *                 @OA\Property(property="start_date", type="string", format="date"),
+     *                 @OA\Property(property="end_date", type="string", format="date"),
+     *                 @OA\Property(property="monthly_rent", type="number", format="float"),
+     *                 @OA\Property(property="security_deposit", type="number", format="float"),
+     *                 @OA\Property(property="lease_type", type="string"),
+     *                 @OA\Property(property="payment_day", type="integer"),
+     *                 @OA\Property(property="status", type="string"),
+     *                 @OA\Property(property="notes", type="string", nullable=true),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time")
+     *             )),
+     *             @OA\Property(property="pagination", type="object",
+     *                 @OA\Property(property="total", type="integer"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="to", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -121,6 +269,73 @@ class LeaseController extends Controller
     /**
      * Store a newly created lease in storage.
      *
+     * @OA\Post(
+     *     path="/leases",
+     *     operationId="storeLease",
+     *     tags={"Leases"},
+     *     summary="Store new lease",
+     *     description="Creates a new lease and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"unit_id", "tenant_id", "start_date", "end_date", "monthly_rent", "security_deposit", "lease_type", "payment_day", "status"},
+     *             @OA\Property(property="unit_id", type="integer", description="ID of the unit being leased"),
+     *             @OA\Property(property="tenant_id", type="integer", description="ID of the primary tenant"),
+     *             @OA\Property(property="start_date", type="string", format="date", description="Lease start date"),
+     *             @OA\Property(property="end_date", type="string", format="date", description="Lease end date"),
+     *             @OA\Property(property="monthly_rent", type="number", format="float", description="Monthly rent amount"),
+     *             @OA\Property(property="security_deposit", type="number", format="float", description="Security deposit amount"),
+     *             @OA\Property(property="lease_type", type="string", description="Type of lease"),
+     *             @OA\Property(property="payment_day", type="integer", description="Day of month when payment is due"),
+     *             @OA\Property(property="status", type="string", description="Lease status (active, pending, expired, terminated)"),
+     *             @OA\Property(property="notes", type="string", description="Additional notes about the lease", nullable=true),
+     *             @OA\Property(property="tenants", type="array", description="Additional tenants on the lease", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="tenant_id", type="integer", description="ID of the tenant"),
+     *                 @OA\Property(property="is_primary", type="boolean", description="Whether this tenant is the primary tenant")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Lease created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="unit_id", type="integer"),
+     *             @OA\Property(property="tenant_id", type="integer"),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="monthly_rent", type="number", format="float"),
+     *             @OA\Property(property="security_deposit", type="number", format="float"),
+     *             @OA\Property(property="lease_type", type="string"),
+     *             @OA\Property(property="payment_day", type="integer"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="unit", type="object"),
+     *             @OA\Property(property="tenant", type="object"),
+     *             @OA\Property(property="tenants", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="payments", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error or unit not available",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The unit is not available for the selected date range.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  \App\Http\Requests\LeaseRequest  $request
      * @return \Illuminate\Http\Response
      */
@@ -173,6 +388,56 @@ class LeaseController extends Controller
     /**
      * Display the specified lease.
      *
+     * @OA\Get(
+     *     path="/leases/{id}",
+     *     operationId="getLeaseById",
+     *     tags={"Leases"},
+     *     summary="Get lease information",
+     *     description="Returns lease details by ID",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Lease ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="unit_id", type="integer"),
+     *             @OA\Property(property="tenant_id", type="integer"),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="monthly_rent", type="number", format="float"),
+     *             @OA\Property(property="security_deposit", type="number", format="float"),
+     *             @OA\Property(property="lease_type", type="string"),
+     *             @OA\Property(property="payment_day", type="integer"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="unit", type="object"),
+     *             @OA\Property(property="tenant", type="object"),
+     *             @OA\Property(property="tenants", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="payments", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Lease not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -184,6 +449,83 @@ class LeaseController extends Controller
 
     /**
      * Update the specified lease in storage.
+     *
+     * @OA\Put(
+     *     path="/leases/{id}",
+     *     operationId="updateLease",
+     *     tags={"Leases"},
+     *     summary="Update lease",
+     *     description="Updates an existing lease and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Lease ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="unit_id", type="integer", description="ID of the unit being leased"),
+     *             @OA\Property(property="tenant_id", type="integer", description="ID of the primary tenant"),
+     *             @OA\Property(property="start_date", type="string", format="date", description="Lease start date"),
+     *             @OA\Property(property="end_date", type="string", format="date", description="Lease end date"),
+     *             @OA\Property(property="monthly_rent", type="number", format="float", description="Monthly rent amount"),
+     *             @OA\Property(property="security_deposit", type="number", format="float", description="Security deposit amount"),
+     *             @OA\Property(property="lease_type", type="string", description="Type of lease"),
+     *             @OA\Property(property="payment_day", type="integer", description="Day of month when payment is due"),
+     *             @OA\Property(property="status", type="string", description="Lease status (active, pending, expired, terminated)"),
+     *             @OA\Property(property="notes", type="string", description="Additional notes about the lease", nullable=true),
+     *             @OA\Property(property="tenants", type="array", description="Additional tenants on the lease", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="tenant_id", type="integer", description="ID of the tenant"),
+     *                 @OA\Property(property="is_primary", type="boolean", description="Whether this tenant is the primary tenant")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lease updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="unit_id", type="integer"),
+     *             @OA\Property(property="tenant_id", type="integer"),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="monthly_rent", type="number", format="float"),
+     *             @OA\Property(property="security_deposit", type="number", format="float"),
+     *             @OA\Property(property="lease_type", type="string"),
+     *             @OA\Property(property="payment_day", type="integer"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="unit", type="object"),
+     *             @OA\Property(property="tenant", type="object"),
+     *             @OA\Property(property="tenants", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="payments", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Lease not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error or unit not available",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The unit is not available for the selected date range.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @param  \App\Http\Requests\LeaseRequest  $request
      * @param  int  $id
@@ -244,6 +586,43 @@ class LeaseController extends Controller
     /**
      * Remove the specified lease from storage.
      *
+     * @OA\Delete(
+     *     path="/leases/{id}",
+     *     operationId="deleteLease",
+     *     tags={"Leases"},
+     *     summary="Delete lease",
+     *     description="Deletes a lease if it has no associated payments",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Lease ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Lease deleted successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Lease not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Cannot delete lease with dependencies",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Cannot delete lease with associated payments. Consider marking it as terminated instead.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -268,6 +647,35 @@ class LeaseController extends Controller
 
     /**
      * Get lease statistics.
+     *
+     * @OA\Get(
+     *     path="/leases/statistics",
+     *     operationId="getLeaseStatistics",
+     *     tags={"Leases"},
+     *     summary="Get lease statistics",
+     *     description="Returns statistics about leases including counts by status and average rent",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="total", type="integer"),
+     *             @OA\Property(property="active", type="integer"),
+     *             @OA\Property(property="pending", type="integer"),
+     *             @OA\Property(property="expired", type="integer"),
+     *             @OA\Property(property="terminated", type="integer"),
+     *             @OA\Property(property="avg_rent", type="number", format="float"),
+     *             @OA\Property(property="expiring_soon", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @return \Illuminate\Http\Response
      */

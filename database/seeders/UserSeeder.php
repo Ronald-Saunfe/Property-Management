@@ -16,11 +16,13 @@ class UserSeeder extends Seeder
         // Create 10 users with random roles
         User::factory(10)->create();
         
-        // Optionally, create a specific admin user
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'role' => 'admin',
-        ]);
+        // Create admin user only if it doesn't exist
+        if (!User::where('email', 'admin@example.com')->exists()) {
+            User::factory()->create([
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+                'role' => 'admin',
+            ]);
+        }
     }
 }

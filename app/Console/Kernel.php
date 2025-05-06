@@ -9,10 +9,18 @@ class Kernel extends ConsoleKernel
 {
     /**
      * Define the application's command schedule.
+     *
+     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @return void
      */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Schedule rent due reminders to run daily at 8:00 AM
+        $schedule->command('reminders:rent-due')->dailyAt('08:00');
+        
+        // You can also schedule reminders with different days before due date
+        // $schedule->command('reminders:rent-due 3')->dailyAt('08:00'); // 3 days before
+        // $schedule->command('reminders:rent-due 1')->dailyAt('08:00'); // 1 day before
     }
 
     /**

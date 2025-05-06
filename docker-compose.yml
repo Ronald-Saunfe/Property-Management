@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  # PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: property-management-app
+    container_name: pm-app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - pm-network
+
+  # Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: pm-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - pm-network
+
+  # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: pm-db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: property_management
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: secret
+      MYSQL_USER: pm_user
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - pm-dbdata:/var/lib/mysql/
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - pm-network
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: pm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - pm-network
+
+# Docker Networks
+networks:
+  pm-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  pm-dbdata:
+    driver: local

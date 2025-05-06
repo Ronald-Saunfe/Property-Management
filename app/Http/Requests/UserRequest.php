@@ -27,7 +27,7 @@ class UserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|in:admin,property_manager,tenant,owner',
+            'role' => 'required|string|in:admin,agent,landlord',
             'phone' => 'nullable|string|max:20',
         ];
 
@@ -37,7 +37,7 @@ class UserRequest extends FormRequest
             $rules['name'] = 'sometimes|required|string|max:255';
             $rules['email'] = 'sometimes|required|string|email|max:255|unique:users,email,' . $userId;
             $rules['password'] = 'nullable|string|min:8';
-            $rules['role'] = 'sometimes|required|string|in:admin,property_manager,tenant,owner';
+            $rules['role'] = 'sometimes|required|string|in:admin,agent,landlord';
         }
 
         return $rules;
@@ -52,13 +52,13 @@ class UserRequest extends FormRequest
     {
         return [
             'name.required' => 'The name is required.',
-            'email.required' => 'The email address is required.',
-            'email.email' => 'Please provide a valid email address.',
-            'email.unique' => 'This email address is already in use.',
+            'email.required' => 'The email is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already in use.',
             'password.required' => 'The password is required.',
             'password.min' => 'The password must be at least 8 characters.',
-            'role.required' => 'The user role is required.',
-            'role.in' => 'The user role must be admin, property_manager, tenant, or owner.',
+            'role.required' => 'The role is required.',
+            'role.in' => 'The role must be one of: admin, agent, landlord.',
         ];
     }
 }

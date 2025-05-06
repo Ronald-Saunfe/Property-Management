@@ -12,6 +12,148 @@ class PaymentController extends Controller
 {
     /**
      * Display a paginated, filtered, and sorted listing of payments.
+     * 
+     * @OA\Get(
+     *     path="/payments",
+     *     operationId="getPaymentsList",
+     *     tags={"Payments"},
+     *     summary="Get list of payments",
+     *     description="Returns paginated list of payments with filtering and sorting options",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="lease_id",
+     *         in="query",
+     *         description="Filter by lease ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by payment status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"paid", "pending", "late", "partial"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="payment_method",
+     *         in="query",
+     *         description="Filter by payment method",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="amount_min",
+     *         in="query",
+     *         description="Filter by minimum amount",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="amount_max",
+     *         in="query",
+     *         description="Filter by maximum amount",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="due_date_from",
+     *         in="query",
+     *         description="Filter by due date (from)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="due_date_to",
+     *         in="query",
+     *         description="Filter by due date (to)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="payment_date_from",
+     *         in="query",
+     *         description="Filter by payment date (from)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="payment_date_to",
+     *         in="query",
+     *         description="Filter by payment date (to)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by notes, transaction ID, tenant name, or unit number",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Direction to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", format="int32")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="lease_id", type="integer"),
+     *                 @OA\Property(property="amount", type="number", format="float"),
+     *                 @OA\Property(property="due_date", type="string", format="date"),
+     *                 @OA\Property(property="payment_date", type="string", format="date", nullable=true),
+     *                 @OA\Property(property="payment_method", type="string", nullable=true),
+     *                 @OA\Property(property="transaction_id", type="string", nullable=true),
+     *                 @OA\Property(property="status", type="string"),
+     *                 @OA\Property(property="notes", type="string", nullable=true),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="lease", type="object"),
+     *                 @OA\Property(property="lease.tenant", type="object"),
+     *                 @OA\Property(property="lease.unit", type="object")
+     *             )),
+     *             @OA\Property(property="pagination", type="object",
+     *                 @OA\Property(property="total", type="integer"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="to", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -118,6 +260,60 @@ class PaymentController extends Controller
     /**
      * Store a newly created payment in storage.
      *
+     * @OA\Post(
+     *     path="/payments",
+     *     operationId="storePayment",
+     *     tags={"Payments"},
+     *     summary="Store new payment",
+     *     description="Creates a new payment and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"lease_id", "amount", "due_date", "status"},
+     *             @OA\Property(property="lease_id", type="integer", description="ID of the lease"),
+     *             @OA\Property(property="amount", type="number", format="float", description="Payment amount"),
+     *             @OA\Property(property="due_date", type="string", format="date", description="Due date for payment"),
+     *             @OA\Property(property="payment_date", type="string", format="date", description="Date payment was made", nullable=true),
+     *             @OA\Property(property="payment_method", type="string", description="Method of payment", nullable=true),
+     *             @OA\Property(property="transaction_id", type="string", description="Transaction ID reference", nullable=true),
+     *             @OA\Property(property="status", type="string", description="Payment status (paid, pending, late, partial)"),
+     *             @OA\Property(property="notes", type="string", description="Additional notes", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Payment created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="lease_id", type="integer"),
+     *             @OA\Property(property="amount", type="number", format="float"),
+     *             @OA\Property(property="due_date", type="string", format="date"),
+     *             @OA\Property(property="payment_date", type="string", format="date", nullable=true),
+     *             @OA\Property(property="payment_method", type="string", nullable=true),
+     *             @OA\Property(property="transaction_id", type="string", nullable=true),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="lease", type="object"),
+     *             @OA\Property(property="lease.tenant", type="object"),
+     *             @OA\Property(property="lease.unit", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  \App\Http\Requests\PaymentRequest  $request
      * @return \Illuminate\Http\Response
      */
@@ -130,6 +326,11 @@ class PaymentController extends Controller
 
         $payment = Payment::create($validated);
 
+        // If payment status is 'paid', dispatch job to send payment receipt
+        if ($payment->status === 'paid') {
+            \App\Jobs\SendPaymentReceipt::dispatch($payment);
+        }
+
         // Load relationships for the response
         $payment->load(['lease', 'lease.tenant', 'lease.unit']);
 
@@ -138,6 +339,53 @@ class PaymentController extends Controller
 
     /**
      * Display the specified payment.
+     *
+     * @OA\Get(
+     *     path="/payments/{id}",
+     *     operationId="getPaymentById",
+     *     tags={"Payments"},
+     *     summary="Get payment information",
+     *     description="Returns payment details by ID",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Payment ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="lease_id", type="integer"),
+     *             @OA\Property(property="amount", type="number", format="float"),
+     *             @OA\Property(property="due_date", type="string", format="date"),
+     *             @OA\Property(property="payment_date", type="string", format="date", nullable=true),
+     *             @OA\Property(property="payment_method", type="string", nullable=true),
+     *             @OA\Property(property="transaction_id", type="string", nullable=true),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="lease", type="object"),
+     *             @OA\Property(property="lease.tenant", type="object"),
+     *             @OA\Property(property="lease.unit", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -151,6 +399,70 @@ class PaymentController extends Controller
     /**
      * Update the specified payment in storage.
      *
+     * @OA\Put(
+     *     path="/payments/{id}",
+     *     operationId="updatePayment",
+     *     tags={"Payments"},
+     *     summary="Update payment",
+     *     description="Updates an existing payment and returns it",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Payment ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="lease_id", type="integer", description="ID of the lease"),
+     *             @OA\Property(property="amount", type="number", format="float", description="Payment amount"),
+     *             @OA\Property(property="due_date", type="string", format="date", description="Due date for payment"),
+     *             @OA\Property(property="payment_date", type="string", format="date", description="Date payment was made", nullable=true),
+     *             @OA\Property(property="payment_method", type="string", description="Method of payment", nullable=true),
+     *             @OA\Property(property="transaction_id", type="string", description="Transaction ID reference", nullable=true),
+     *             @OA\Property(property="status", type="string", description="Payment status (paid, pending, late, partial)"),
+     *             @OA\Property(property="notes", type="string", description="Additional notes", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="lease_id", type="integer"),
+     *             @OA\Property(property="amount", type="number", format="float"),
+     *             @OA\Property(property="due_date", type="string", format="date"),
+     *             @OA\Property(property="payment_date", type="string", format="date", nullable=true),
+     *             @OA\Property(property="payment_method", type="string", nullable=true),
+     *             @OA\Property(property="transaction_id", type="string", nullable=true),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="notes", type="string", nullable=true),
+     *             @OA\Property(property="created_at", type="string", format="date-time"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time"),
+     *             @OA\Property(property="lease", type="object"),
+     *             @OA\Property(property="lease.tenant", type="object"),
+     *             @OA\Property(property="lease.unit", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     *
      * @param  \App\Http\Requests\PaymentRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -158,9 +470,16 @@ class PaymentController extends Controller
     public function update(PaymentRequest $request, $id)
     {
         $payment = Payment::findOrFail($id);
+        $oldStatus = $payment->status;
         $validated = $request->validated();
 
         $payment->update($validated);
+
+        // Check if payment status changed to 'paid' and dispatch email job
+        if ($oldStatus !== 'paid' && $payment->status === 'paid') {
+            // Dispatch job to send payment receipt email
+            \App\Jobs\SendPaymentReceipt::dispatch($payment);
+        }
 
         // Load relationships for the response
         $payment->load(['lease', 'lease.tenant', 'lease.unit']);
@@ -170,6 +489,43 @@ class PaymentController extends Controller
 
     /**
      * Remove the specified payment from storage.
+     *
+     * @OA\Delete(
+     *     path="/payments/{id}",
+     *     operationId="deletePayment",
+     *     tags={"Payments"},
+     *     summary="Delete payment",
+     *     description="Deletes a payment",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Payment ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Payment deleted successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Cannot delete payment",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Cannot delete a payment that has already been paid. Consider updating its status instead.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -192,6 +548,37 @@ class PaymentController extends Controller
 
     /**
      * Get payment statistics.
+     *
+     * @OA\Get(
+     *     path="/payments/statistics",
+     *     operationId="getPaymentStatistics",
+     *     tags={"Payments"},
+     *     summary="Get payment statistics",
+     *     description="Returns statistics about payments including counts by status and amounts",
+     *     security={{
+     *       "bearerAuth": {}
+     *     }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="total_payments", type="integer"),
+     *             @OA\Property(property="paid_payments", type="integer"),
+     *             @OA\Property(property="pending_payments", type="integer"),
+     *             @OA\Property(property="late_payments", type="integer"),
+     *             @OA\Property(property="partial_payments", type="integer"),
+     *             @OA\Property(property="total_amount_paid", type="number", format="float"),
+     *             @OA\Property(property="total_amount_pending", type="number", format="float"),
+     *             @OA\Property(property="payments_due_this_month", type="integer"),
+     *             @OA\Property(property="amount_due_this_month", type="number", format="float")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      *
      * @return \Illuminate\Http\Response
      */
