@@ -48,3 +48,7 @@ For a simpler setup using Docker, please refer to our [Docker Setup Guide](DOCKE
 ### Security
 
 * [Rate Limiting Documentation](RATE-LIMITING-DOCUMENTATION.md) - API rate limiting implementation
+
+## Project Submission
+
+* [Submission Checklist](SUBMISSION-CHECKLIST.md) - Verify all requirements before submission
