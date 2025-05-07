@@ -41,6 +41,9 @@ COPY . /var/www/html
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www/html
 
+# Set environment variable to allow Composer to run as root/superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Install composer dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
