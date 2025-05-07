@@ -45,7 +45,8 @@ COPY --chown=www:www . /var/www/html
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Install composer dependencies
-RUN composer install --no-interaction --no-dev --optimize-autoloader
+RUN composer remove --no-update laravel/telescope && \
+    composer install --no-interaction --no-dev --optimize-autoloader
 
 # Setup Nginx
 COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
