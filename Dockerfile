@@ -41,6 +41,9 @@ COPY . /var/www/html
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www/html
 
+# Install composer dependencies
+RUN composer install --no-interaction --no-dev --optimize-autoloader
+
 # Setup Nginx
 COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
 
@@ -52,6 +55,10 @@ RUN echo '#!/bin/bash' > /var/www/html/start.sh && \
     echo 'mkdir -p /var/run/nginx' >> /var/www/html/start.sh && \
     echo 'touch /var/run/nginx/nginx.pid' >> /var/www/html/start.sh && \
     echo 'chmod -R 777 /var/run/nginx' >> /var/www/html/start.sh && \
+    echo '# Check if vendor directory exists, if not run composer install' >> /var/www/html/start.sh && \
+    echo 'if [ ! -d "/var/www/html/vendor" ]; then' >> /var/www/html/start.sh && \
+    echo '  composer install --no-interaction --optimize-autoloader' >> /var/www/html/start.sh && \
+    echo 'fi' >> /var/www/html/start.sh && \
     echo 'php-fpm -D' >> /var/www/html/start.sh && \
     echo 'nginx -g "daemon off;"' >> /var/www/html/start.sh && \
     chmod +x /var/www/html/start.sh
