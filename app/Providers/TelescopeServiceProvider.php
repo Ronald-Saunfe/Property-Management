@@ -14,6 +14,8 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     public function register(): void
     {
+        // Telescope functionality disabled
+        /*
         // Telescope::night();
 
         $this->hideSensitiveRequestDetails();
@@ -28,6 +30,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
                    $entry->isScheduledTask() ||
                    $entry->hasMonitoredTag();
         });
+        */
     }
 
     /**
@@ -35,6 +38,8 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function hideSensitiveRequestDetails(): void
     {
+        // Sensitive request details handling disabled
+        /*
         if ($this->app->environment('local')) {
             return;
         }
@@ -46,6 +51,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             'x-csrf-token',
             'x-xsrf-token',
         ]);
+        */
     }
 
     /**
@@ -55,10 +61,13 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function gate(): void
     {
+        // Telescope access gate disabled
+        /*
         Gate::define('viewTelescope', function ($user) {
             return in_array($user->email, [
                 //
             ]);
         });
+        */
     }
 }
