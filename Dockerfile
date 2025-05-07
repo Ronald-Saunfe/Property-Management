@@ -46,10 +46,14 @@ COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
 
 # Create startup script
 RUN echo '#!/bin/bash' > /var/www/html/start.sh && \
-    echo 'PORT=${PORT:-80}' >> /var/www/html/start.sh && \
+    echo 'PORT=${PORT:-8080}' >> /var/www/html/start.sh && \
     echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
-    echo 'service nginx start' >> /var/www/html/start.sh && \
-    echo 'php-fpm' >> /var/www/html/start.sh && \
+    echo 'sed -i "s/fastcgi_pass app:9000/fastcgi_pass 127.0.0.1:9000/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
+    echo 'mkdir -p /var/run/nginx' >> /var/www/html/start.sh && \
+    echo 'touch /var/run/nginx/nginx.pid' >> /var/www/html/start.sh && \
+    echo 'chmod -R 777 /var/run/nginx' >> /var/www/html/start.sh && \
+    echo 'php-fpm -D' >> /var/www/html/start.sh && \
+    echo 'nginx -g "daemon off;"' >> /var/www/html/start.sh && \
     chmod +x /var/www/html/start.sh
 
 # Change current user to www for application files
@@ -60,5 +64,12 @@ USER root
 
 # Expose port (will be overridden by PORT env var in Render)
 EXPOSE 8080
+
+# Set environment variables for Render
+ENV PORT=8080
+
+# Ensure Nginx can write to these directories
+RUN mkdir -p /var/log/nginx /var/lib/nginx /var/run/nginx && \
+    chmod -R 777 /var/log/nginx /var/lib/nginx /var/run/nginx
 
 CMD ["/var/www/html/start.sh"]
