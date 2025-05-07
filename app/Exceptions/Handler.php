@@ -10,6 +10,8 @@ use Illuminate\Database\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
+use PDOException;
+
 
 class Handler extends ExceptionHandler
 {
@@ -92,7 +94,7 @@ class Handler extends ExceptionHandler
                 ], 500);
             }
 
-            if ($e instanceof ConnectionException) {
+            if ($e instanceof PDOException) {
                 Log::error('Connection error: ' . $e->getMessage());
                 return response()->json([
                     'message' => 'A connection error occurred. Please try again later.',
