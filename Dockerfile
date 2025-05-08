@@ -62,7 +62,7 @@ COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
 # Create startup script
 RUN echo '#!/bin/bash' > /var/www/html/start.sh && \
     echo 'PORT=${PORT:-8080}' >> /var/www/html/start.sh && \
-    echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
+    echo 'sed -i "s/listen 80/listen ${PORT}/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
     echo 'sed -i "s/fastcgi_pass app:9000/fastcgi_pass 127.0.0.1:9000/g" /etc/nginx/sites-available/default' >> /var/www/html/start.sh && \
     echo 'mkdir -p /var/run/nginx' >> /var/www/html/start.sh && \
     echo 'touch /var/run/nginx/nginx.pid' >> /var/www/html/start.sh && \
