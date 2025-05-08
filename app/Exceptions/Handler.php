@@ -50,80 +50,67 @@ class Handler extends ExceptionHandler
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
-            // Log detailed error information with request context
-            Log::error('Application error', [
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'url' => request()->fullUrl(),
-                'method' => request()->method(),
-                'headers' => request()->headers->all(),
-                'input' => request()->except(['password', 'password_confirmation']),
-                'user_id' => auth()->id(),
-                'ip' => request()->ip()
-            ]);
+            if ($e instanceof QueryException || $e instanceof PDOException) {
+                Log::error('Database Error: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            } elseif ($e instanceof AuthenticationException) {
+                Log::warning('Authentication Error: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            } elseif ($e instanceof AuthorizationException) {
+                Log::warning('Authorization Error: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            } else {
+                Log::error('Unhandled Exception: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         });
 
         $this->renderable(function (Throwable $e) {
-            if ($e instanceof ValidationException) {
+            if ($e instanceof QueryException || $e instanceof PDOException) {
                 return response()->json([
-                    'message' => 'The given data was invalid.',
-                    'errors' => $e->validator->getMessageBag()
-                ], 422);
+                    'message' => 'Database operation failed',
+                    'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage()
+                ], 500);
             }
 
             if ($e instanceof AuthenticationException) {
                 return response()->json([
-                    'message' => 'Unauthenticated.'
+                    'message' => 'Unauthenticated',
+                    'error' => $e->getMessage()
                 ], 401);
             }
 
             if ($e instanceof AuthorizationException) {
                 return response()->json([
-                    'message' => 'This action is unauthorized.'
+                    'message' => 'Unauthorized',
+                    'error' => $e->getMessage()
                 ], 403);
             }
 
-            if ($e instanceof QueryException) {
-                Log::error('Database error: ' . $e->getMessage());
+            if ($e instanceof ValidationException) {
                 return response()->json([
-                    'message' => 'A database error occurred. Please try again later.',
-                    'error_code' => 'DB_ERROR'
-                ], 500);
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
             }
-
-            if ($e instanceof PDOException) {
-                Log::error('Connection error: ' . $e->getMessage());
-                return response()->json([
-                    'message' => 'A connection error occurred. Please try again later.',
-                    'error_code' => 'CONNECTION_ERROR'
-                ], 503);
-            }
-
-            // Handle all other exceptions
-            if (config('app.debug')) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                    'error_code' => 'INTERNAL_ERROR',
-                    'exception' => get_class($e),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => collect($e->getTrace())->map(function ($trace) {
-                        return collect($trace)->except(['args'])->all();
-                    })->all()
-                ], 500);
-            }
-
-            // Log the error with a unique identifier
-            $errorId = uniqid('err_');
-            Log::error("Error ID: {$errorId}", ['exception' => $e]);
 
             return response()->json([
-                'message' => 'An unexpected error occurred. Please try again later.',
-                'error_code' => 'INTERNAL_ERROR',
-                'error_id' => $errorId
+                'message' => 'An unexpected error occurred',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage()
             ], 500);
         });
     }
