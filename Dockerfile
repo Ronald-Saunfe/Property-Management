@@ -48,6 +48,14 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer remove --no-update laravel/telescope && \
     composer install --no-interaction --no-dev --optimize-autoloader
 
+# Set default port
+ENV PORT=80
+ENV SSL_PORT=443
+
+# Expose ports
+EXPOSE ${PORT}
+EXPOSE ${SSL_PORT}
+
 # Setup Nginx
 COPY docker/nginx/conf.d/app.conf /etc/nginx/sites-available/default
 
